@@ -26,10 +26,21 @@ export default function HostScreen({ onBack }: HostScreenProps) {
 
   useEffect(() => {
     const initGame = async () => {
+      const savedGameId = localStorage.getItem('host_game_id');
+      const savedGameCode = localStorage.getItem('host_game_code');
+      
+      if (savedGameId && savedGameCode) {
+        setGameId(savedGameId);
+        setGameCode(savedGameCode);
+        return;
+      }
+
       try {
         const game = await api.createGame();
         setGameCode(game.code);
         setGameId(game.game_id);
+        localStorage.setItem('host_game_id', game.game_id);
+        localStorage.setItem('host_game_code', game.code);
       } catch (error) {
         toast({
           title: 'Ошибка',
