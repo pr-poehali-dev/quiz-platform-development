@@ -1,0 +1,28 @@
+{
+  "tests": [
+    {
+      "name": "Create new game",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "create_game"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "game_id": "string",
+        "code": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get game players",
+      "method": "GET",
+      "path": "/?game_code=ABC123",
+      "expectedStatus": 404,
+      "expectedBody": {
+        "error": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

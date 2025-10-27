@@ -1,0 +1,16 @@
+CREATE TABLE IF NOT EXISTS games (
+  id TEXT PRIMARY KEY,
+  code TEXT UNIQUE NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS players (
+  id TEXT PRIMARY KEY,
+  game_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  score INTEGER DEFAULT 0,
+  joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_players_game_id ON players(game_id);
+CREATE INDEX idx_games_code ON games(code);
