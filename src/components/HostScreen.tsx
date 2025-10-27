@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
 import { api } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
@@ -19,6 +20,8 @@ export default function HostScreen({ onBack }: HostScreenProps) {
   const [gameCode, setGameCode] = useState('');
   const [gameId, setGameId] = useState('');
   const [players, setPlayers] = useState<Player[]>([]);
+  const [currentImage, setCurrentImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -69,6 +72,49 @@ export default function HostScreen({ onBack }: HostScreenProps) {
     }
   };
 
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const imageUrl = e.target?.result as string;
+      setCurrentImage(imageUrl);
+      
+      try {
+        await api.setImage(gameId, imageUrl);
+        toast({
+          title: 'Успешно',
+          description: 'Изображение отправлено на общий экран',
+        });
+      } catch (error) {
+        toast({
+          title: 'Ошибка',
+          description: 'Не удалось загрузить изображение',
+          variant: 'destructive',
+        });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeImage = async () => {
+    try {
+      await api.setImage(gameId, '');
+      setCurrentImage(null);
+      toast({
+        title: 'Успешно',
+        description: 'Изображение удалено',
+      });
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось удалить изображение',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen p-6">
       <Button
@@ -88,6 +134,45 @@ export default function HostScreen({ onBack }: HostScreenProps) {
             </div>
             <p className="text-muted-foreground">Игроки используют этот код для подключения</p>
           </div>
+        </Card>
+
+        <Card className="p-6 bg-card border-primary/30 shadow-xl shadow-primary/10">
+          <h3 className="text-xl font-bold mb-4">Изображение на общем экране</h3>
+          
+          {currentImage ? (
+            <div className="space-y-4">
+              <img 
+                src={currentImage} 
+                alt="Текущее изображение" 
+                className="w-full h-64 object-contain rounded-lg bg-muted"
+              />
+              <Button 
+                onClick={removeImage}
+                variant="destructive"
+                className="w-full"
+              >
+                <Icon name="X" size={20} className="mr-2" />
+                Убрать изображение
+              </Button>
+            </div>
+          ) : (
+            <div>
+              <Input 
+                ref={fileInputRef}
+                type="file" 
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+              <Button 
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full h-20 bg-primary hover:bg-primary/90"
+              >
+                <Icon name="ImagePlus" size={32} className="mr-2" />
+                Добавить изображение
+              </Button>
+            </div>
+          )}
         </Card>
 
         {players.length === 0 ? (

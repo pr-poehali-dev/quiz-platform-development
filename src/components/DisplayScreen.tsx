@@ -19,6 +19,7 @@ export default function DisplayScreen({ onBack }: DisplayScreenProps) {
   const [gameCode, setGameCode] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [players, setPlayers] = useState<Player[]>([]);
+  const [currentImage, setCurrentImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isConnected || !gameCode) return;
@@ -27,6 +28,7 @@ export default function DisplayScreen({ onBack }: DisplayScreenProps) {
       try {
         const gameState = await api.getGameState(gameCode);
         setPlayers(gameState.players);
+        setCurrentImage(gameState.current_image);
       } catch (error) {
         console.error('Failed to fetch game state:', error);
       }
@@ -90,6 +92,16 @@ export default function DisplayScreen({ onBack }: DisplayScreenProps) {
         <h1 className="text-6xl font-black text-primary text-center mb-12 tracking-wider">
           ЛИДЕРБОРД
         </h1>
+
+        {currentImage && (
+          <div className="mb-12 flex justify-center">
+            <img 
+              src={currentImage} 
+              alt="Вопрос викторины" 
+              className="max-w-2xl max-h-96 object-contain rounded-3xl shadow-2xl shadow-primary/30"
+            />
+          </div>
+        )}
 
         <div className="space-y-6">
           {sortedPlayers.map((player, index) => (

@@ -48,7 +48,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 game_id = f"game_{random.randint(100000, 999999)}"
                 
                 cur.execute(
-                    "INSERT INTO games (id, code) VALUES (%s, %s)",
+                    "INSERT INTO games (id, code, current_image) VALUES (%s, %s, NULL)",
                     (game_id, game_code)
                 )
                 conn.commit()
@@ -57,6 +57,22 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'statusCode': 200,
                     'headers': headers,
                     'body': json.dumps({'game_id': game_id, 'code': game_code})
+                }
+            
+            elif action == 'set_image':
+                game_id = body.get('game_id')
+                image_url = body.get('image_url')
+                
+                cur.execute(
+                    "UPDATE games SET current_image = %s WHERE id = %s",
+                    (image_url, game_id)
+                )
+                conn.commit()
+                
+                return {
+                    'statusCode': 200,
+                    'headers': headers,
+                    'body': json.dumps({'success': True})
                 }
             
             elif action == 'join_game':
@@ -135,13 +151,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 )
                 players = cur.fetchall()
                 
+                cur.execute(
+                    "SELECT current_image FROM games WHERE id = %s",
+                    (game['id'],)
+                )
+                game_data = cur.fetchone()
+                
                 return {
                     'statusCode': 200,
                     'headers': headers,
                     'body': json.dumps({
                         'game_id': game['id'],
                         'code': game_code,
-                        'players': [dict(p) for p in players]
+                        'players': [dict(p) for p in players],
+                        'current_image': game_data['current_image'] if game_data else None
                     })
                 }
         

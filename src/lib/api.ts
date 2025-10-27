@@ -10,6 +10,7 @@ export interface Game {
   game_id: string;
   code: string;
   players: Player[];
+  current_image: string | null;
 }
 
 export const api = {
@@ -49,6 +50,19 @@ export const api = {
 
   async getGameState(gameCode: string): Promise<Game> {
     const response = await fetch(`${API_URL}?game_code=${gameCode}`);
+    return response.json();
+  },
+
+  async setImage(gameId: string, imageUrl: string): Promise<{ success: boolean }> {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'set_image',
+        game_id: gameId,
+        image_url: imageUrl,
+      }),
+    });
     return response.json();
   },
 };
